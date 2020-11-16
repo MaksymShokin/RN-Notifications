@@ -29,14 +29,21 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const subscription = Notifications.addNotificationReceivedListener(
+    const backgroundSubscription = Notifications.addNotificationResponseReceivedListener(
+      notification => {
+        console.log(notification);
+      }
+    );
+
+    const foregroundSubscription = Notifications.addNotificationReceivedListener(
       notification => {
         console.log(notification);
       }
     );
 
     return () => {
-      subscription.remove();
+      backgroundSubscription.remove();
+      foregroundSubscription.remove();
     };
   });
 
