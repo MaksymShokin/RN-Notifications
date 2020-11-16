@@ -27,6 +27,19 @@ export default function App() {
         }
       });
   }, []);
+
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(
+      notification => {
+        console.log(notification);
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  });
+
   const pushNotificationHandler = () => {
     Notifications.scheduleNotificationAsync({
       content: {
