@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, Button, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Permissions from 'expo-permissions';
@@ -13,6 +13,8 @@ Notifications.setNotificationHandler({
 });
 
 export default function App() {
+  const [pushToken, setPushToken] = useState(null);
+
   useEffect(() => {
     Permissions.getAsync(Permissions.NOTIFICATIONS)
       .then(statusObj => {
@@ -23,8 +25,18 @@ export default function App() {
       })
       .then(statusObj => {
         if (statusObj.status !== 'granted') {
-          return;
+          throw new Error('Permission not granted');
         }
+      })
+      .then(() => {
+        return Notifications.getExpoPushTokenAsync();
+      })
+      .then(res => {
+        setPushToken(res.data);
+      })
+      .catch(err => {
+        console.log(err);
+        return null;
       });
   }, []);
 
@@ -48,14 +60,28 @@ export default function App() {
   });
 
   const pushNotificationHandler = () => {
-    Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'First notifications',
-        body: 'Sent with expo'
+    // Notifications.scheduleNotificationAsync({
+    //   content: {
+    //     title: 'First notifications',
+    //     body: 'Sent with expo'
+    //   },
+    //   trigger: {
+    //     seconds: 5
+    //   }
+    // });
+
+    fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-Encoding': 'gzip, deflate',
+        'Content-Type': 'Application/json'
       },
-      trigger: {
-        seconds: 5
-      }
+      body: JSON.stringify({
+        to: pushToken,
+        title: 'SUPERTEST',
+        body: 'MEGATEST'
+      })
     });
   };
 
